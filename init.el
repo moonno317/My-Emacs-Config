@@ -78,37 +78,6 @@ $" . linux-c-mode)
   (insert "Good Morning"))
 (add-to-list 'dashboard-item-generators  '(custom . dashboard-insert-custom))
 (add-to-list 'dashboard-items '(custom) t)
-(use-package smart-mode-line :ensure t)
-(setq-default mode-line-format
-              '("%e"
-                mode-line-front-space
-                mode-line-mule-info
-                mode-line-client
-                mode-line-modified
-                mode-line-remote
-                mode-line-frame-identification
-                mode-line-buffer-identification
-                " "
-                mode-line-position
-                evil-mode-line-tag
-                (vc-mode vc-mode)
-                " "
-                mode-line-modes
-                mode-line-misc-info
-                mode-line-end-spaces))
-(load-theme 'doom-nord t)
-(use-package dashboard
-  :config
-  (setq dashboard-startup-banner 'logo)
-  (setq dashboard-banner-logo-title
-        (concat " "
-                (with-temp-buffer
-                  (insert-file-contents "~/.emacs.d/ascii.txt")
-                  (buffer-string)))))
-(setq dashboard-startup-banner nil)
-(use-package elcord
-  :ensure t)
-
 (setq which-key-show-early-on-C-h t)
 (which-key-mode)
 (use-package magit
@@ -122,31 +91,6 @@ $" . linux-c-mode)
 
  minimap-dedicated-window t
  minimap-enlarge-certain-faces nil)
-
-(use-package lsp-mode
-  :hook
-  (c-mode . lsp-deferred)
-  (c++-mode . lsp-deferred)
-  :commands (lsp lsp-deferred)
-  :config
-  (setq lsp-prefer-flymake nil) ; Use lsp-ui and flycheck instead of flymake
-  (setq lsp-clients-clangd-executable "clangd") ; Set the path to clangd executable
-  )
-
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :config
-  (setq lsp-ui-doc-enable t
-        lsp-ui-doc-position 'top
-        lsp-ui-doc-header t
-        lsp-ui-doc-include-signature t
-        lsp-ui-sideline-enable nil
-        lsp-ui-sideline-show-hover nil
-        lsp-ui-sideline-show-diagnostics nil
-        lsp-ui-sideline-ignore-duplicate t))
-
-(use-package lsp-treemacs
-  :after lsp)
 
 (use-package doom-modeline
   :ensure t
@@ -166,9 +110,116 @@ $" . linux-c-mode)
   ;; Add or remove segments based on your preference
   (doom-modeline-def-segment my-segment
     "Custom segment"
-    (concat "My Segment: " (format-time-string "%H:%M")))
+    (concat "My Segment: " (format-time-string "%H:%M ")))
   (doom-modeline-def-modeline 'my-custom-modeline
     '(bar workspace-name window-number modals matches buffer-info my-segment))
   (defun setup-custom-modeline ()
     (doom-modeline-set-modeline 'my-custom-modeline))
   (add-hook 'emacs-startup-hook #'setup-custom-modeline))
+
+(use-package company
+  :ensure t
+  :hook (prog-mode . company-mode)
+  :custom
+  (company-backends '(company-capf)))
+
+(use-package lsp-mode
+  :ensure t
+  :hook (prog-mode . lsp-deferred)
+  :custom
+  (lsp-prefer-capf t)
+  (lsp-auto-guess-root t)             
+  (lsp-keep-workspace-alive nil))
+(use-package lsp-mode
+  :hook ((X-mode Y-mode Z-mode) . lsp-deferred) ; XYZ are to be replaced by python, c++, etc.
+  :commands lsp)
+(use-package lsp-ui
+  :commands lsp-ui-mode)
+(use-package lsp-ui
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-doc-header t)
+  (setq lsp-ui-doc-include-signature t)
+  (setq lsp-ui-doc-border (face-foreground 'default))
+  (setq lsp-ui-sideline-show-code-actions t)
+  (setq lsp-ui-sideline-delay 0.05))
+(use-package lsp-mode
+  :hook ((c-mode) . lsp-deferred)
+  :commands lsp
+  :config
+  (setq lsp-auto-guess-root t)
+  (setq lsp-log-io nil)
+  (setq lsp-restart 'auto-restart)
+  (setq lsp-enable-symbol-highlighting nil)
+  (setq lsp-enable-on-type-formatting nil)
+  (setq lsp-signature-auto-activate nil)
+  (setq lsp-signature-render-documentation nil)
+  (setq lsp-eldoc-hook nil)
+  (setq lsp-modeline-code-actions-enable nil)
+  (setq lsp-modeline-diagnostics-enable nil)
+  (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-semantic-tokens-enable nil)
+  (setq lsp-enable-folding nil)
+  (setq lsp-enable-imenu nil)
+  (setq lsp-enable-snippet nil)
+  (setq read-process-output-max (* 1024 1024)) ;; 1MB
+  (setq lsp-idle-delay 0.5))
+
+
+
+
+
+(use-package dashboard
+  :config
+  (setq dashboard-startup-banner 'logo)
+  (setq dashboard-banner-logo-title
+        (concat " "
+                (with-temp-buffer
+                  (insert-file-contents "~/.emacs.d/ascii.txt")
+                  (buffer-string)))))
+(setq dashboard-startup-banner nil)
+(minimap-mode)
+(setq
+ minimap-window-location 'right
+ minimap-width-fraction 0.0
+ minimap-minimum-width 20
+
+ minimap-dedicated-window t
+ minimap-enlarge-certain-faces nil)
+
+
+
+(use-package spacemacs-theme
+  :ensure t
+  :config
+  (load-theme 'spacemacs-light t))
+
+(use-package smart-mode-line
+  :ensure t
+  :config
+  (setq sml/theme 'powerline)
+  (setq sml/no-confirm-load-theme t)
+  (setq sml/name-width 20) ; Adjust the width of the mode-line segment
+
+  ;; Customize the mode-line separators
+  (setq sml/separator-scale 0.8)
+  (setq sml/separator-width 1)
+  (setq sml/mode-width 'full)
+
+  ;; Set custom faces for the mode-line segments
+  (custom-set-faces
+   '(mode-line ((t (:background "#F5F5F5" :foreground "#333333" :box nil))))
+   '(mode-line-inactive ((t (:background "#EAEAEA" :foreground "#999999" :box nil))))
+   '(sml/filename ((t (:foreground "#333333"))))
+   '(sml/prefix ((t (:foreground "#E67E80"))))
+   '(sml/read-only ((t (:foreground "#C594C5"))))
+   '(sml/modes ((t (:foreground "#6C9EF8"))))
+   '(sml/position-percentage ((t (:foreground "#99C794"))))
+   '(sml/vc ((t (:foreground "#C594C5" :weight bold))))
+   '(sml/git ((t (:foreground "#C594C5" :weight bold))))
+   '(sml/process ((t (:foreground "#6C9EF8"))))
+   '(sml/narrowed ((t (:foreground "#E06C75")))))
+
+  :init
+  (add-hook 'after-init-hook 'sml/setup))
