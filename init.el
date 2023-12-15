@@ -82,15 +82,7 @@ $" . linux-c-mode)
 (which-key-mode)
 (use-package magit
   :ensure t)
-(require 'minimap)
-(minimap-mode)
-(setq
- minimap-window-location 'right
- minimap-width-fraction 0.0
- minimap-minimum-width 20
 
- minimap-dedicated-window t
- minimap-enlarge-certain-faces nil)
 
 (use-package doom-modeline
   :ensure t
@@ -130,44 +122,12 @@ $" . linux-c-mode)
   (lsp-prefer-capf t)
   (lsp-auto-guess-root t)             
   (lsp-keep-workspace-alive nil))
-(use-package lsp-mode
-  :hook ((X-mode Y-mode Z-mode) . lsp-deferred) ; XYZ are to be replaced by python, c++, etc.
-  :commands lsp)
-(use-package lsp-ui
-  :commands lsp-ui-mode)
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :config
-  (setq lsp-ui-doc-enable nil)
-  (setq lsp-ui-doc-header t)
-  (setq lsp-ui-doc-include-signature t)
-  (setq lsp-ui-doc-border (face-foreground 'default))
-  (setq lsp-ui-sideline-show-code-actions t)
-  (setq lsp-ui-sideline-delay 0.05))
-(use-package lsp-mode
-  :hook ((c-mode) . lsp-deferred)
-  :commands lsp
-  :config
-  (setq lsp-auto-guess-root t)
-  (setq lsp-log-io nil)
-  (setq lsp-restart 'auto-restart)
-  (setq lsp-enable-symbol-highlighting nil)
-  (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-signature-auto-activate nil)
-  (setq lsp-signature-render-documentation nil)
-  (setq lsp-eldoc-hook nil)
-  (setq lsp-modeline-code-actions-enable nil)
-  (setq lsp-modeline-diagnostics-enable nil)
-  (setq lsp-headerline-breadcrumb-enable nil)
-  (setq lsp-semantic-tokens-enable nil)
-  (setq lsp-enable-folding nil)
-  (setq lsp-enable-imenu nil)
-  (setq lsp-enable-snippet nil)
-  (setq read-process-output-max (* 1024 1024)) ;; 1MB
-  (setq lsp-idle-delay 0.5))
+(defun dotfiles--lsp-deferred-if-supported ()
+  "Run `lsp-deferred' if it's a supported mode."
+  (unless (derived-mode-p 'emacs-lisp-mode)
+    (lsp-deferred)))
 
-
-
+(add-hook 'prog-mode-hook #'dotfiles--lsp-deferred-if-supported)
 
 
 (use-package dashboard
@@ -179,21 +139,7 @@ $" . linux-c-mode)
                   (insert-file-contents "~/.emacs.d/ascii.txt")
                   (buffer-string)))))
 (setq dashboard-startup-banner nil)
-(minimap-mode)
-(setq
- minimap-window-location 'right
- minimap-width-fraction 0.0
- minimap-minimum-width 20
 
- minimap-dedicated-window t
- minimap-enlarge-certain-faces nil)
-
-
-
-(use-package spacemacs-theme
-  :ensure t
-  :config
-  (load-theme 'spacemacs-light t))
 
 (use-package smart-mode-line
   :ensure t
@@ -223,3 +169,30 @@ $" . linux-c-mode)
 
   :init
   (add-hook 'after-init-hook 'sml/setup))
+
+(use-package ewal
+  :init (setq ewal-use-built-in-always-p nil
+              ewal-use-built-in-on-failure-p t
+              ewal-built-in-palette "sexy-material"))
+(use-package ewal-spacemacs-themes
+  :init (progn
+          (setq spacemacs-theme-underline-parens t
+                my:rice:font (font-spec
+                              :family "Source Code Pro"
+                              :weight 'semi-bold
+                              :size 11.0))
+          (show-paren-mode +1)
+          (global-hl-line-mode)
+          (set-frame-font my:rice:font nil t)
+          (add-to-list  'default-frame-alist
+                        `(font . ,(font-xlfd-name my:rice:font))))
+  :config (progn
+            (load-theme 'ewal-spacemacs-modern t)
+            (enable-theme 'ewal-spacemacs-modern)))
+(use-package spaceline
+  :after (ewal-evil-cursors winum)
+  :init (setq powerline-default-separator nil)
+  :config (spaceline-spacemacs-theme))
+
+(set-frame-parameter nil 'alpha-background 75)
+(add-to-list 'default-frame-alist '(alpha-background . 75))
